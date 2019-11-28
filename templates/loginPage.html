@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+      body {
+        background-color: lightcyan;
+      }
+
+      p {
+        font-style: oblique;
+        font-size: xx-large;
+      }
+
+      .button {
+        background-color:green;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        font-style: italic;
+      }
+
+      button:hover {
+        opacity: 0.8;
+      }
+
+
+      input[type=text], input[type=password] {
+        width: 30%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+      A {
+        text-decoration: none;
+        font-size: 1.2em;
+        color: ivory;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center;">
+      <p>Welcome to {{.WelcomeMessage}}</p>
+      <form method="POST">
+          <div class="container">
+            <label style="font-style: italic;">Email ID:</label>&nbsp;&nbsp;
+            <input type="text" name="emailId" required><br><br>
+            <label style="font-style: italic;">Password:</label>&nbsp;&nbsp;
+            <input type="password" name="password" required><br><br>
+            <button type="submit" class="button"><a >Login</a></button></li>
+          </div>
+      </form>
+      <p style="color:red;">{{.ValidateMessage}}</p>
+    </div>
+  </body>
+</html>
+

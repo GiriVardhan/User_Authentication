@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+      body {
+        background-color: lightcyan;
+      }
+
+      p {
+        font-style: oblique;
+        font-size: xx-large;
+      }
+
+      li {
+        font-size: xx-large;
+      }
+
+      .button {
+        background-color:green;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        font-style: italic;
+      }
+
+      A {
+        text-decoration: none;
+        font-size: 1.5em;
+        color: ivory;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center;">
+      <p>Welcome to {{.WelcomeMessage}}</p>
+      <ul style="list-style: none;">
+        <li><button class="button"><a href="/login">Login</a></button></li>
+        <li><button class="button"><a href="/registration">Registration</a></button></li>
+      </ul>
+    </div>
+  </body>
+</html>

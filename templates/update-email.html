@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+      body {
+        background-color: lightcyan;
+      }
+
+      p {
+        font-style: oblique;
+        font-size: xx-large;
+      }
+
+      li {
+        font-size: xx-large;
+      }
+
+      .button {
+        background-color:green;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 12px;
+        margin: 4px 2px;
+        cursor: pointer;
+        font-style: italic;
+      }
+
+      A {
+        text-decoration: none;
+        font-size: 1.5em;
+        color: ivory;
+      }
+
+      label {
+        display: inline-block;
+        width: 140px;
+        text-align: left;   
+        font-style: italic;   
+      }    
+    </style>
+</head>
+<body>
+ <div style="text-align: center;">
+      <h3 style="color: green;">{{.SuccessMessage}}</h3>
+      <h3 style="color: red;">{{.FailedMessage}}</h3>
+ <p>Update Email!</p>
+  <form method="POST">
+    <label>User Id: </label> <input type="text" name="userid" required> <br><br>
+    <label>Update Email Id:</label>  <input type="text" name="emailid" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" /><br><br>
+    <button type="submit" class="button"><a >Update Email</a></button></li>
+  </form>
+ </div>
+</body>
+</html>

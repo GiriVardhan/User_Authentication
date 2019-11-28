@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style>
+      body {
+        background-color: lightcyan;
+      }
+
+      p {
+        font-style: oblique;
+        font-size: xx-large;
+      }
+
+      li {
+        font-size: xx-large;
+      }
+
+      .button {
+        background-color:green;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        font-style: italic;
+      } 
+
+      label {
+        display: inline-block;
+        width: 120px;
+        text-align: left;
+        font-style: italic;
+}​
+    </style>
+  </head>
+  <body>
+     <div style="text-align: center;">
+        <p>Enter User Information</p>
+            <form name="myForm" method="POST">
+                <label>User Id:</label>
+                <input type="text" name="userid" required><br /><br>
+                <label>First Name:</label>
+                <input type="text" name="fname" required><br /><br>
+                <label>Last Name:</label>
+                <input type="text" name="lname" required><br /><br>
+                <label>Email Id:</label>
+                <input type="email" name="email" required><br /><br>   
+                <label>Password:</label>
+                <input type="password" name="pwd"  pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters"
+                required><br><br>      
+                <input class="button" type="submit" value="Register">
+            </form>
+        {{if .IssueMsg}}
+            <h3 style="color: red; text-align: center; font-style: italic;">{{ .IssueMsg}}</h3>
+        {{end}} 
+        {{ if .SuccessFlag}}
+          <h3 style="text-align: center;color: rgb(41, 133, 13); font-style: italic;"> You are registered successfully With Email {{ .EmailId}} click <a href="/login">here</a> to login.</h3>
+        {{end}}
+     </div> 
+    </body>
+</html>
+
