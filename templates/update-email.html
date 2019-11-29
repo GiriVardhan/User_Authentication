@@ -48,9 +48,12 @@
  <div style="text-align: center;">
       <h3 style="color: green;">{{.SuccessMessage}}</h3>
       <h3 style="color: red;">{{.FailedMessage}}</h3>
+      {{if .IssueMsg}}
+      <h3 style="color: red;">{{ .IssueMsg}}</h3>
+       {{end}}
  <p>Update Email!</p>
   <form method="POST">
-    <label>User Id: </label> <input type="text" name="userid" required> <br><br>
+   <!-- <label>User Id: </label> <input type="text" name="userid" required> <br><br>-->
     <label>Update Email Id:</label>  <input type="text" name="emailid" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" /><br><br>
     <button type="submit" class="button"><a >Update Email</a></button></li>
   </form>
