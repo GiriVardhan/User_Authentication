@@ -1,5 +1,6 @@
 # user_authentication
 Setup the below keyspace and table on Cassandra DB
+
 CREATE KEYSPACE userdb WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
 
 CREATE TABLE userdb.user_details (
