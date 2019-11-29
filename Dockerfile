@@ -8,6 +8,8 @@ WORKDIR /app
 
 # Copy everything from the current directory to the Working Directory inside the container
 COPY . .
+# Get all dependencies
+RUN go get -d -v
 
 # Build the Go app
 RUN go build -o main .
