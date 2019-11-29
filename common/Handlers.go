@@ -25,34 +25,35 @@ type AllUsersResponse struct {
     ListLen int
     SuccessMessage string
     FailedMessage string
+    IssueMsg string
 }
 
 type userCredentials struct {
-  EmailId	string
+  EmailId   string
   Password  string
 }
 
 type GetPassword struct {
-	Password    string 
+    Password    string 
 }
 
 type Response struct {
-  WelcomeMessage		string
-  ValidateMessage string	
+  WelcomeMessage        string
+  ValidateMessage string    
 }
 
 type User struct {
-	UserId          string `json:"user_id"`
-	FirstName 		string `json:"first_name"`
-	LastName  		string `json:"last_name"`
-	Email     		string `json:"email"`
-	Password        string `json:"password"`
+    UserId          string `json:"user_id"`
+    FirstName       string `json:"first_name"`
+    LastName        string `json:"last_name"`
+    Email           string `json:"email"`
+    Password        string `json:"password"`
 }
 
 type Allissues struct {
-	IssueMsg string
-	SuccessFlag bool
-	EmailId string
+    IssueMsg string
+    SuccessFlag bool
+    EmailId string
 }
 
 func HashPassword(password string) (string, error) {
@@ -67,7 +68,7 @@ func CheckPasswordHash(password, hash string) bool {
 
 func validation(a string, b string, c string, d string) bool {
   if a != b || c != d{
-		return false
+        return false
   }
   return true
 }
@@ -77,23 +78,23 @@ var cookieHandler = securecookie.New(
     securecookie.GenerateRandomKey(64),
     securecookie.GenerateRandomKey(32))
   
-func getSession(request *http.Request) (yourName string) {
-    if cookie, err := request.Cookie("your-name"); err == nil {
-        cookieValue := make(map[string]string)
-        if err = cookieHandler.Decode("your-name", cookie.Value, &cookieValue); err == nil {
-            yourName = cookieValue["your-name"]
+func getSession(request *http.Request) (userDetails User) {
+    if cookie, err := request.Cookie("user-data"); err == nil {
+        cookieValue := make(map[string]User)
+        if err = cookieHandler.Decode("user-data", cookie.Value, &cookieValue); err == nil {
+            userDetails = cookieValue["user-data"]
         }
     }
-    return yourName
+    return userDetails
 }
   
-func setSession(yourName string, response http.ResponseWriter) {
-    value := map[string]string{
-        "your-name": yourName,
+func setSession(userDetails User, response http.ResponseWriter) {
+    value := map[string]User{
+        "user-data": userDetails,
     }
-    if encoded, err := cookieHandler.Encode("your-name", value); err == nil {
+    if encoded, err := cookieHandler.Encode("user-data", value); err == nil {
         cookie := &http.Cookie{
-            Name:  "your-name",
+            Name:  "user-data",
             Value: encoded,
             Path:  "/",
             MaxAge: 3600,
@@ -104,7 +105,7 @@ func setSession(yourName string, response http.ResponseWriter) {
   
 func clearSession(response http.ResponseWriter) {
     cookie := &http.Cookie{
-        Name:   "your-name",
+        Name:   "user-data",
         Value:  "",
         Path:   "/",
         MaxAge: -1,
@@ -144,7 +145,7 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
   }
 
   credentials := userCredentials{
-		EmailId:   r.FormValue("emailId"),
+        EmailId:   r.FormValue("emailId"),
     Password:   r.FormValue("password"), 
   }
 
@@ -152,12 +153,19 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
   var password string = ""
   var emailId string
   var fname string
+  var userId string
+  var user User
 
-  iter := Cassandra.Session.Query("SELECT email_id, password, first_name FROM user_details WHERE email_id = ? ALLOW FILTERING", credentials.EmailId).Iter() 
+  iter := Cassandra.Session.Query("SELECT email_id, password, first_name,user_id FROM user_details WHERE email_id = ? ALLOW FILTERING", credentials.EmailId).Iter() 
   for iter.MapScan(m) {
     password = m["password"].(string)
     emailId = m["email_id"].(string)
     fname = m["first_name"].(string)
+    userId = m["user_id"].(string)
+    user = User{
+        UserId: userId,
+        FirstName: fname,
+    }
   }
 
   var emailValidation string
@@ -171,14 +179,14 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
   }
 
   if _userIsValid {
-    setSession(fname, w)
+    setSession(user, w)
     http.Redirect(w, r, "/dashboard", http.StatusFound)
   }
 
   var welcomeLoginPage string
   welcomeLoginPage = "Login Page"
 
-  tmpl.Execute(w, Response{WelcomeMessage: welcomeLoginPage, ValidateMessage: emailValidation})	  
+  tmpl.Execute(w, Response{WelcomeMessage: welcomeLoginPage, ValidateMessage: emailValidation})   
   
 }
 //***************************** End User Login Page Code *******************************************
@@ -186,48 +194,48 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 
 //*********************** Begin Registration Page Code *********************************************
 func RegistrationPage(w http.ResponseWriter, r *http.Request) {
-		var err error
-		var flag bool
+        var err error
+        var flag bool
 
         w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		t := template.Must(template.ParseFiles("templates/registrationPage.html"))
+        t := template.Must(template.ParseFiles("templates/registrationPage.html"))
 
         if err != nil {
-		fmt.Fprintf(w, "Unable to load template")
-		}
+        fmt.Fprintf(w, "Unable to load template")
+        }
 
         if r.Method != http.MethodPost {
             t.Execute(w, nil)
             return
         }
 
-		dt := time.Now() 
-		ti := time.Now()
-		
+        dt := time.Now() 
+        ti := time.Now()
+        
         details := User{
-			UserId:     r.FormValue("userid"),
+            UserId:     r.FormValue("userid"),
                         FirstName:  r.FormValue("fname"),
                         LastName:   r.FormValue("lname"),
-			Email:      r.FormValue("email"),
-			Password:   r.FormValue("pwd"),
-		}
-		msg := checkDuplicateEmail(details.Email)
+            Email:      r.FormValue("email"),
+            Password:   r.FormValue("pwd"),
+        }
+        msg := checkDuplicateEmail(details.Email)
 
-		hash, _ := HashPassword(details.Password)
-				
-		if msg == ""{
-			fmt.Println(" **** Inserting a record ****")
-			if err := Cassandra.Session.Query("INSERT INTO user_details(user_id, first_name, last_name, email_id,password,date_created,date_modified) VALUES(?, ?, ?, ?,?,?,?)",
-			details.UserId, details.FirstName, details.LastName, details.Email, hash, dt, ti).Exec(); err != nil {
-				fmt.Println("Error while inserting Emp")
-				fmt.Println(err)
-			} else {		
-				flag = true
-				//w.Write([]byte("<script>alert('User Registered Successfully');window.location = '/login'</script>")) 							               
-			}
+        hash, _ := HashPassword(details.Password)
+                
+        if msg == ""{
+            fmt.Println(" **** Inserting a record ****")
+            if err := Cassandra.Session.Query("INSERT INTO user_details(user_id, first_name, last_name, email_id,password,date_created,date_modified) VALUES(?, ?, ?, ?,?,?,?)",
+            details.UserId, details.FirstName, details.LastName, details.Email, hash, dt, ti).Exec(); err != nil {
+                fmt.Println("Error while inserting Emp")
+                fmt.Println(err)
+            } else {        
+                flag = true
+                //w.Write([]byte("<script>alert('User Registered Successfully');window.location = '/login'</script>"))                                         
+            }
 
-		}	
-	t.Execute(w, Allissues{EmailId: details.Email, IssueMsg: msg, SuccessFlag: flag} )
+        }   
+    t.Execute(w, Allissues{EmailId: details.Email, IssueMsg: msg, SuccessFlag: flag} )
 }
 //*********************** End Registration Page Code ****************************************
 
@@ -237,14 +245,15 @@ func UserDashBoard(w http.ResponseWriter, r *http.Request) {
       if err != nil {
           fmt.Println(err)
       }
-      yourName := getSession(r)
+      userDetails := getSession(r)
+      fmt.Println(userDetails)
 
       items := struct {
           Name string
           Homepage string
           
       }{
-        Name : yourName,
+        Name : userDetails.FirstName,
         Homepage: "Your Dashboard",
         
       }
@@ -257,6 +266,7 @@ func UserDashBoard(w http.ResponseWriter, r *http.Request) {
 func UpdateEmail(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "text/html; charset=utf-8")
     t, err := template.ParseFiles("templates/update-email.html")
+    userData := getSession(r)
     if err != nil {
         fmt.Println(err) // Ugly debug output
         w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
@@ -272,13 +282,15 @@ func UpdateEmail(w http.ResponseWriter, r *http.Request) {
     }
 
     details := userDetails{
-        Userid: r.FormValue("userid"),
+        Userid: userData.UserId,
         Emailid: r.FormValue("emailid"),
     }
+    msg:= checkDuplicateEmail(details.Emailid)
     var empList []userDetails
     m := map[string]interface{}{}
     var successMessage string
     var failedMessage string
+    //var flag bool
 
     iter := Cassandra.Session.Query("SELECT * FROM user_details WHERE user_id = ?", details.Userid).Iter() 
     for iter.MapScan(m) {
@@ -294,6 +306,7 @@ func UpdateEmail(w http.ResponseWriter, r *http.Request) {
     listLen := len(empList);
 
     if(listLen > 0) {
+        if msg == ""{
         if err := Cassandra.Session.Query("UPDATE user_details SET email_id = ? WHERE  user_id = ?", details.Emailid,details.Userid).Exec(); 
         err != nil {
             fmt.Println("Error while updating user email")
@@ -302,26 +315,29 @@ func UpdateEmail(w http.ResponseWriter, r *http.Request) {
             successMessage = "User Email Id Updated Successfully"
             w.Write([]byte("<script>alert('Email Id  Updated Successfully,please login');window.location = '/login'</script>"))
         }
-    } else {
+    }else {
+        //flag = true
+    } 
+    }else {
         failedMessage = "There is no User with that User Id"
     }
-    t.Execute(w, AllUsersResponse{ListLen: listLen, SuccessMessage: successMessage, FailedMessage: failedMessage})  
+    t.Execute(w, AllUsersResponse{ListLen: listLen, SuccessMessage: successMessage, FailedMessage: failedMessage,IssueMsg: msg})  
 }
 //**************** End Email Updation Code *****************************************
 
 
 //****************** Begin Check Duplicate Email Code ******************************
 func checkDuplicateEmail(email string) (message string) {
-			
-		fmt.Println(" **** get count ****")
+            
+        fmt.Println(" **** get count ****")
         var count int 
         iter := Cassandra.Session.Query("SELECT count(*) FROM user_details where email_id = ? allow filtering", email ).Iter();
-		for iter.Scan(&count) {
-		}
+        for iter.Scan(&count) {
+        }
 
-		if count > 0 {
-			message = "Email already exists"
-		}
+        if count > 0 {
+            message = "Email already exists"
+        }
 
     return message   
 }
@@ -332,6 +348,7 @@ func checkDuplicateEmail(email string) (message string) {
 func PasswordUpdate(w http.ResponseWriter, r *http.Request) {  
     w.Header().Set("Content-Type", "text/html; charset=utf-8")
     t, err := template.ParseFiles("templates/passwordupdate.html")
+    userData := getSession(r)
     if err != nil {
         fmt.Println(err) // Ugly debug output
         w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
@@ -347,7 +364,7 @@ func PasswordUpdate(w http.ResponseWriter, r *http.Request) {
     }
 
     details := userDetails{
-        Userid: r.FormValue("userid"),
+        Userid: userData.UserId,
         Password: r.FormValue("pwd2"),
     }
 
@@ -393,9 +410,3 @@ func PasswordUpdate(w http.ResponseWriter, r *http.Request) {
     t.Execute(w, AllUsersResponse{ListLen: listLen, SuccessMessage: successMessage, FailedMessage: failedMessage})  
 }
 //************************ End Password Update Code *****************************************
-
-
-
-
-
-
