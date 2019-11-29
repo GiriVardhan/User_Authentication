@@ -15,8 +15,6 @@ func main() {
     router.HandleFunc("/dashboard", common.UserDashBoard)
     router.HandleFunc("/updateEmail", common.UpdateEmail)
     router.HandleFunc("/passwordUpdate", common.PasswordUpdate)
+    router.HandleFunc("/logout", common.LogOutPage)
     http.ListenAndServe(":8080", router)
 }
-
-
-
