@@ -38,8 +38,9 @@ type GetPassword struct {
 }
 
 type Response struct {
-  WelcomeMessage        string
-  ValidateMessage string    
+  WelcomeMessage  string
+  ValidateMessage string 
+  LogoutMessage string   
 }
 
 type User struct {
@@ -248,6 +249,9 @@ func UserDashBoard(w http.ResponseWriter, r *http.Request) {
       userDetails := getSession(r)
       fmt.Println(userDetails)
 
+      if  (len(userDetails.FirstName) <= 0) {
+           w.Write([]byte("<script>alert('Unauthorized Access!!,please login');window.location = '/login'</script>"))
+      }
       items := struct {
           Name string
           Homepage string
@@ -410,3 +414,17 @@ func PasswordUpdate(w http.ResponseWriter, r *http.Request) {
     t.Execute(w, AllUsersResponse{ListLen: listLen, SuccessMessage: successMessage, FailedMessage: failedMessage})  
 }
 //************************ End Password Update Code *****************************************
+
+//****************** Begin Logout Page Code *****************************
+func LogOutPage(w http.ResponseWriter, r *http.Request) {  
+  tmpl, err := template.ParseFiles("templates/logoutPage.html")
+  if err != nil {
+      fmt.Println(err)
+  }
+
+  var logoutMsg string
+  logoutMsg = "You are successfully Logged Out"
+  
+  tmpl.Execute(w, Response{LogoutMessage: logoutMsg})
+}
+//****************** End Logout Page Code *****************************
